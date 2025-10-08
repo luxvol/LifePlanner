@@ -1,0 +1,104 @@
+body,
+html,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Toolbar */
+.toolbar {
+  background-color: #0078d7;
+  color: white;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 1.5rem;
+}
+
+/* Główna zawartość */
+.content {
+  display: flex;
+  flex: 1;
+}
+
+/* Lewy pasek – 20% */
+.sidebar-left {
+  width: 20%;
+  background-color: #f0f2f5;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Planner – 55% */
+.main {
+  width: 55%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+}
+
+/* Nagłówki dni tygodnia */
+.week-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  background-color: #f7f9fc;
+  font-weight: bold;
+}
+
+.week-header-day {
+  padding: 10px 0;
+  border-right: 1px solid #ddd;
+}
+
+.week-header-day:last-child {
+  border-right: none;
+}
+
+/* Siatka dni */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  height: 100%;
+}
+
+/* Pojedynczy dzień */
+.week-day {
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: #fafbfc;
+}
+
+.week-day:last-child {
+  border-right: none;
+}
+
+.day-events {
+  padding: 10px;
+  color: #555;
+}
+
+/* Prawy pasek – 25% */
+.sidebar-right {
+  width: 25%;
+  background-color: #f0f2f5;
+  border-left: 1px solid #ccc;
+  padding: 10px;
+}

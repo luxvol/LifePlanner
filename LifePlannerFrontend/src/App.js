@@ -1,7 +1,23 @@
 import React, { useEffect, useState } from "react";
+import Toolbar from "./components/Toolbar";
+import SidebarLeft from "./components/SidebarLeft";
+import SidebarRight from "./components/SidebarRight";
+import WeekView from "./components/WeekView/WeekView";
+import "./components/Layout.css";
 
 function App() {
-  const [message, setMessage] = useState("Ładowanie...");
+  return (
+    <div className="app">
+      <Toolbar />
+      <div className="content">
+        <SidebarLeft />
+        <WeekView />
+        <SidebarRight />
+      </div>
+    </div>
+  );
+
+  /*const [message, setMessage] = useState("Ładowanie...");
 
   useEffect(() => {
     fetch("http://localhost:8080/api/hello")
@@ -20,7 +36,7 @@ function App() {
         Odpowiedź z backendu: <strong>{message}</strong>
       </p>
     </div>
-  );
+  );*/
 }
 
 export default App;
