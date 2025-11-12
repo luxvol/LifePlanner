@@ -86,3 +86,14 @@
 .week-day-cell:last-child {
   border-right: none;
 }
+
+.task-card {
+  background: #e6f0ff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cce0ff;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

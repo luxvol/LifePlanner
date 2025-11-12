@@ -4,56 +4,78 @@ const TasksList = () => {
   const [tasks, setTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState("");
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingTaskText, setEditingTaskText] = useState("");
+  const [editingTaskDate, setEditingTaskDate] = useState("");
+
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/getTasks");
+      const data = await res.json();
+      setTasks(data.filter((t) => !t.status));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/getTasks")
-      .then((response) => response.json())
-      .then((data) => setTasks(data));
+    fetchTasks();
   }, []);
 
-  const addTask = () => {
-    fetch("http://localhost:8080/api/addTask", {
+  const addTask = async () => {
+    if (!newTaskText.trim()) return;
+    const payload = {
+      text: newTaskText,
+      date: newTaskDate ? newTaskDate : null,
+      status: !!newTaskDate,
+    };
+    await fetch("http://localhost:8080/api/addTask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: newTaskText, status: false }),
-    })
-      .then(() => {
-        setNewTaskText("");
-        setIsModalOpen(false);
-        return fetch("http://localhost:8080/api/getTasks");
-      })
-      .then((response) => response.json())
-      .then((data) => setTasks(data));
+      body: JSON.stringify(payload),
+    });
+    setNewTaskText("");
+    setNewTaskDate("");
+    setIsModalOpen(false);
+    fetchTasks();
+
+    window.dispatchEvent(new Event("taskUpdated"));
   };
 
-  const deleteTask = (id) => {
-    fetch(`http://localhost:8080/api/deleteTask/${id}`, {
+  const deleteTask = async (id) => {
+    await fetch(`http://localhost:8080/api/deleteTask/${id}`, {
       method: "DELETE",
-    })
-      .then(() => {
-        return fetch("http://localhost:8080/api/getTasks");
-      })
-      .then((response) => response.json())
-      .then((data) => setTasks(data));
+    });
+    fetchTasks();
   };
 
-  const saveTaskEdit = (id) => {
-    fetch(`http://localhost:8080/api/editTask/${id}`, {
+  const startEdit = (task) => {
+    setEditingTaskId(task.id);
+    setEditingTaskText(task.text);
+    setEditingTaskDate(task.date ? task.date : "");
+  };
+
+  const saveTaskEdit = async (id) => {
+    const payload = {
+      text: editingTaskText,
+      date: editingTaskDate ? editingTaskDate : null,
+      status: !!editingTaskDate,
+    };
+    await fetch(`http://localhost:8080/api/editTask/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: editingTaskText, status: false }),
-    })
-      .then(() => {
-        setEditingTaskId(null);
-        return fetch("http://localhost:8080/api/getTasks");
-      })
-      .then((res) => res.json())
-      .then((data) => setTasks(data));
+      body: JSON.stringify(payload),
+    });
+    setEditingTaskId(null);
+    setEditingTaskText("");
+    setEditingTaskDate("");
+    fetchTasks();
+
+    window.dispatchEvent(new Event("taskUpdated"));
   };
   return (
-    <div>
+    <div style={{ position: "relative", minHeight: "300px" }}>
       <h2>Lista zadań</h2>
       {tasks.length > 0 ? (
         tasks.map((task) => (
@@ -63,7 +85,13 @@ const TasksList = () => {
                 <input
                   value={editingTaskText}
                   onChange={(e) => setEditingTaskText(e.target.value)}
-                  style={{ flex: 1, marginRight: "10px" }}
+                  style={{ flex: 1, marginRight: "8px" }}
+                />
+                <input
+                  type="date"
+                  value={editingTaskDate}
+                  onChange={(e) => setEditingTaskDate(e.target.value)}
+                  style={{ marginRight: "8px" }}
                 />
                 <button
                   onClick={() => saveTaskEdit(task.id)}
@@ -80,13 +108,10 @@ const TasksList = () => {
               </>
             ) : (
               <>
-                <span>{task.text}</span>
+                <span style={{ flex: 1 }}>{task.text}</span>
                 <div>
                   <button
-                    onClick={() => {
-                      setEditingTaskId(task.id);
-                      setEditingTaskText(task.text);
-                    }}
+                    onClick={() => startEdit(task)}
                     style={deleteBtnStyle}
                   >
                     ✏️
@@ -120,6 +145,15 @@ const TasksList = () => {
               onChange={(e) => setNewTaskText(e.target.value)}
               placeholder="Wpisz zadanie..."
             />
+            <label style={{ marginTop: "8px" }}>
+              Data (opcjonalnie):
+              <input
+                type="date"
+                value={newTaskDate}
+                onChange={(e) => setNewTaskDate(e.target.value)}
+                style={{ marginLeft: "8px" }}
+              />
+            </label>
             <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
               <button onClick={addTask}>Dodaj</button>
               <button onClick={() => setIsModalOpen(false)}> Anuluj</button>
@@ -139,7 +173,6 @@ const modalOverlayStyle = {
   justifyContent: "Center",
   alignItems: "center",
 };
-
 const modalStyle = {
   background: "white",
   padding: "20px",
@@ -148,21 +181,22 @@ const modalStyle = {
   flexDirection: "column",
   minWidth: "250px",
 };
-
 const addButtonStyle = {
-  position: "absolute",
+  position: "fixed", // <- kluczowa zmiana — przykleja do ekranu, nie do kontenera
   bottom: "15px",
   right: "15px",
   fontSize: "36px",
-  color: "white",
+  color: "#0078d7",
+  background: "none", // upewniamy się, że nie ma tła
   border: "none",
-  borderRadius: "50%",
   width: "48px",
   height: "48px",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  zIndex: 1000, // na wierzchu
+  transition: "transform 0.2s, color 0.2s",
 };
 
 const taskItemStyle = {
@@ -175,7 +209,6 @@ const taskItemStyle = {
   borderRadius: "6px",
   border: "1px solid #ddd",
 };
-
 const deleteBtnStyle = {
   background: "none",
   border: "none",
@@ -183,5 +216,4 @@ const deleteBtnStyle = {
   fontSize: "18px",
   marginLeft: "5px",
 };
-
 export default TasksList;
